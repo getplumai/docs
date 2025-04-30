@@ -1,9 +1,9 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "willow",
   "name": "Mint Starter Kit",
   "colors": {
-    "primary": "#16A34A",
+    "primary": "#663399",
     "light": "#07C983",
     "dark": "#15803D"
   },
@@ -83,20 +83,19 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:founders@getplum.ai"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://app.getplum.ai"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/getplumai",
+      "linkedin": "https://www.linkedin.com/company/103429435/admin/dashboard/"
     }
   }
 }

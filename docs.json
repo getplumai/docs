@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
-  "name": "Mint Starter Kit",
+  "name": "Plum AI Docs",
   "colors": {
     "primary": "#663399",
     "light": "#07C983",

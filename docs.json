@@ -4,8 +4,8 @@
   "name": "Plum AI Docs",
   "colors": {
     "primary": "#663399",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "light": "#663399",
+    "dark": "#5c2e8a"
   },
   "favicon": "/favicon.png",
   "navigation": {

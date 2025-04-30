@@ -1,217 +1,686 @@
-{
-  "openapi": "3.1.0",
-  "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
-  "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  }
-}
+openapi: 3.0.0
+info:
+  title: Plum API
+  version: 1.0.1
+servers:
+  - url: https://beta.getplum.ai/v1
+paths:
+  /data/seeds:
+    get:
+      summary: List all seed datasets
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Successfully retrieved list of seed datasets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datasets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        created_at:
+                          type: string
+  /data/seed/{id}:
+    get:
+      summary: Retrieve a specific seed dataset by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the seed dataset or "latest" to get the most recent dataset
+      responses:
+        "200":
+          description: Successfully retrieved dataset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        input:
+                          type: string
+                        output:
+                          type: string
+                  system_prompt:
+                    type: string
+                  created_at:
+                    type: string
+    post:
+      summary: Insert or overwrite seed data by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      input:
+                        type: string
+                      output:
+                        type: string
+                      id:
+                        type: string
+                system_prompt:
+                  type: string
+              required:
+                - data
+                - system_prompt
+      responses:
+        "200":
+          description: Data successfully inserted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /data/seed/{id}/pair:
+    post:
+      summary: Add a single pair to an existing seed dataset
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the existing seed dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Optional ID for the pair, will be generated if not provided
+                input:
+                  type: string
+                output:
+                  type: string
+                labels:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - input
+                - output
+      responses:
+        "200":
+          description: Pair successfully added to dataset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataset_id:
+                    type: string
+                  pair_id:
+                    type: string
+  /data/seed:
+    post:
+      summary: Upload a new seed dataset
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      input:
+                        type: string
+                      output:
+                        type: string
+                      id:
+                        type: string
+                system_prompt:
+                  type: string
+              required:
+                - data
+                - system_prompt
+      responses:
+        "200":
+          description: Dataset successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /data/synthetics:
+    get:
+      summary: List all synthetic datasets
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Successfully retrieved list of synthetic datasets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datasets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        created_at:
+                          type: string
+  /data/synthetic/{id}:
+    get:
+      summary: Retrieve synthetic data by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the synthetic dataset or "latest" to get the most recent dataset
+      responses:
+        "200":
+          description: Successfully retrieved synthetic data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        input:
+                          type: string
+                        output:
+                          type: string
+                  system_prompt:
+                    type: string
+                  created_at:
+                    type: string
+    put:
+      summary: Insert or overwrite synthetic data by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      input:
+                        type: string
+                      output:
+                        type: string
+                system_prompt:
+                  type: string
+              required:
+                - data
+      responses:
+        "200":
+          description: Data successfully inserted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /data/synthetic:
+    post:
+      summary: Upload new synthetic data
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      input:
+                        type: string
+                      output:
+                        type: string
+                system_prompt:
+                  type: string
+              required:
+                - data
+      responses:
+        "200":
+          description: Synthetic data successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /data/synthetic_openai/{id}:
+    get:
+      summary: Retrieve synthetic data formatted for OpenAI by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved OpenAI formatted synthetic data
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: JSONL format for OpenAI fine-tuning
+  /question/{id}:
+    get:
+      summary: Get a specific metric definition by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved metric definition
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics_id:
+                    type: string
+                  definitions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        description:
+                          type: string
+                  system_prompt:
+                    type: string
+                  metric_count:
+                    type: integer
+                  created_at:
+                    type: string
+  /evaluation/{id}:
+    get:
+      summary: Get a specific evaluation result by ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully retrieved evaluation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  metrics_id:
+                    type: string
+                  scores:
+                    type: object
+                  mean_scores:
+                    type: array
+                    items:
+                      type: number
+  /questions:
+    post:
+      summary: Generate evaluation metrics
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                system_prompt:
+                  type: string
+              required:
+                - system_prompt
+      responses:
+        "200":
+          description: Metrics successfully generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics_id:
+                    type: string
+                  definitions:
+                    type: array
+                    items:
+                      type: object
+                  created_at:
+                    type: string
+  /list_questions:
+    get:
+      summary: List all available evaluation metrics
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Successfully retrieved list of evaluation metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        metrics_id:
+                          type: string
+                        definitions:
+                          type: array
+                          items:
+                            type: object
+                        system_prompt:
+                          type: string
+                        metric_count:
+                          type: integer
+                        created_at:
+                          type: string
+                  total_count:
+                    type: integer
+  /list_evaluations:
+    get:
+      summary: List all available evaluation results
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Successfully retrieved list of evaluation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+  /specify_questions:
+    post:
+      summary: Create custom metric definitions
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metrics:
+                  type: array
+                  items:
+                    type: string
+                    description: String description of each metric
+              required:
+                - metrics
+      responses:
+        "200":
+          description: Custom metrics successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics_id:
+                    type: string
+                  created_at:
+                    type: string
+  /evaluate:
+    post:
+      summary: Evaluate datasets with specified metrics
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seed_data_id:
+                  type: string
+                metrics_id:
+                  type: string
+              required:
+                - seed_data_id
+                - metrics_id
+      responses:
+        "200":
+          description: Evaluation successfully completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eval_results_id:
+                    type: string
+  /augment:
+    post:
+      summary: Augment seed data to generate synthetic data
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seed_data_id:
+                  type: string
+                multiple:
+                  type: integer
+                  default: 1
+                  maximum: 50
+                  description: Number of synthetic examples to generate per seed example (max 50)
+                eval_results_id:
+                  type: string
+              required:
+                - seed_data_id
+      responses:
+        "200":
+          description: Data successfully augmented
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  synthetic_data_id:
+                    type: string
+                  created_at:
+                    type: string
+                  seed_data_size:
+                    type: integer
+                  synthetic_data_size:
+                    type: integer
+                  system_prompt:
+                    type: string
+                  target_metric:
+                    type: object
+  /compare_prompts:
+    post:
+      summary: Compare multiple prompts against a dataset
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                system_prompts:
+                  type: array
+                  items:
+                    type: string
+                seed_data_id:
+                  type: string
+                  description: ID of seed dataset to use (either this or synthetic_data_id is required)
+                synthetic_data_id:
+                  type: string
+                  description: ID of synthetic dataset to use (either this or seed_data_id is required)
+                metrics_id:
+                  type: string
+                model_name:
+                  type: string
+                model_provider:
+                  type: string
+              required:
+                - system_prompts
+                - model_name
+                - model_provider
+      responses:
+        "200":
+          description: Prompts successfully compared
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      prompts:
+                        type: array
+                        items:
+                          type: string
+                      comparisons:
+                        type: array
+                        items:
+                          type: object
+                      metrics_id:
+                        type: string
+  /improve_prompt:
+    post:
+      summary: Generate an improved prompt based on comparison results
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt_comparison_results:
+                  type: object
+                  description: Results from the /compare_prompts endpoint
+                seed_data_id:
+                  type: string
+                  description: Optional ID of seed dataset to use for prompt improvement
+              required:
+                - prompt_comparison_results
+      responses:
+        "200":
+          description: Improved prompt successfully generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  improved_prompt:
+                    type: string
+                  original_prompt:
+                    type: string
+                  metrics_id:
+                    type: string
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization

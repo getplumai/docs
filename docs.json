@@ -38,6 +38,11 @@
           "anchor": "Blog",
           "href": "https://blog.getplum.ai",
           "icon": "newspaper"
+        },
+        {
+          "anchor": "API Reference",
+          "href": "https://docs.getplum.ai/api-reference",
+          "icon": "book"
         }
       ]
     }

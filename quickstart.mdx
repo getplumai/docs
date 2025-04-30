@@ -3,95 +3,91 @@ title: 'Quickstart'
 description: 'Start building awesome documentation in under 5 minutes'
 ---
 
-## Setup your development
+## Get an access key
 
-Learn how to update your docs locally and deploy them to the public.
+[https://auth.getplum.ai](https://auth.getplum.ai) 
 
-### Edit and preview
+Sign up here to get a Plum AI API key.
 
-<AccordionGroup>
-  <Accordion icon="github" title="Clone your docs locally">
-    During the onboarding process, we created a repository on your Github with
-    your docs content. You can find this repository on our
-    [dashboard](https://dashboard.mintlify.com). To clone the repository
-    locally, follow these
-    [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-    in your terminal.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Preview changes">
-    Previewing helps you make sure your changes look as intended. We built a
-    command line interface to render these changes locally. 
-    1. Install the
-    [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the
-    documentation changes locally with this command: ``` npm i -g mintlify ```
-    2. Run the following command at the root of your documentation (where
-    `docs.json` is): ``` mintlify dev ```
-    <Note>
-      If you’re currently using the legacy ```mint.json``` configuration file, please update the Mintlify CLI:
+## Call the Plum AI - API
 
+### Recommended to use Postman
 
-      ```npm i -g mintlify@latest```
-      And run the new upgrade command in your docs repository:
+[Instead of running `curl` commands, you can also use the API via the Postman interface.](https://www.postman.com/research-astronomer-38444972/workspace/plum-api-beta-endpoints/collection/39138842-02681bf5-2542-4a19-8f3f-36058f6683d9?action=share&creator=39138842)
 
-      ```mintlify upgrade```
-      You should now be using the new ```docs.json``` configuration file. Feel free to delete the ```mint.json``` file from your repository.
-    </Note>
-  </Accordion>
-</AccordionGroup>
+We recommend **Postman** over `curl`.
 
-### Deploy your changes
+### Step 1: Upload your data
 
-<AccordionGroup>
+All you need to get started is: 
 
-<Accordion icon="message-bot" title="Install our Github app">
-  Our Github app automatically deploys your changes to your docs site, so you
-  don't need to manage deployments yourself. You can find the link to install on
-  your [dashboard](https://dashboard.mintlify.com). Once the bot has been
-  successfully installed, there should be a check mark next to the commit hash
-  of the repo.
-</Accordion>
-<Accordion icon="rocket" title="Push your changes">
-  [Commit and push your changes to
-  Git](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository#about-git-push)
-  for your changes to update in your docs site. If you push and don't see that
-  the Github app successfully deployed your changes, you can also manually
-  update your docs through our [dashboard](https://dashboard.mintlify.com).
-</Accordion>
+1. The system prompt you’ve been using
+2. User prompts (inputs) you’ve sent to the LLM
+3. Outputs that the LLM has returned
 
-</AccordionGroup>
+```bash
+curl -H "Authorization: YOUR_KEY_HERE" -d '{"data":[{"input":"THE FIRST USER PROMPT HERE", "output":"THE FIRST LLM RESPONSE HERE"},
+{"input":"ANOTHER USER PROMPT HERE", "output":"THE SECOND LLM RESPONSE HERE"}], "system_prompt":"YOUR SYSTEM PROMPT HERE"}' beta.getplum.ai/v1/data/seed
+```
 
-## Update your docs
+You will get a dataset ID in the response. Keep it somewhere safe because you’ll need it later.
 
-Add content directly in your files with MDX syntax and React components. You can use any of our components, or even build your own.
+### Step 2: Generate metric definitions based on your system prompt
 
-<CardGroup>
+The ability to evaluate your model comes from well-defined metrics. Plum creates criteria based on your business use case, which it then uses to score the model.
 
-<Card title="Add Content With MDX" icon="file" href="/essentials/markdown">
-  Add content to your docs with MDX syntax.
-</Card>
+```bash
+curl -H "Authorization: YOUR_KEY_HERE" -d '{"system_prompt":"YOUR SYSTEM PROMPT GOES HERE"}' beta.getplum.ai/v1/questions
+```
 
-<Card
-  title="Add Code Blocks"
-  icon="square-code"
-  href="/essentials/code"
->
-  Add code directly to your docs with syntax highlighting.
-</Card>
+Keep the metrics ID in the response somewhere safe. You’ll need it in the next step.
 
-<Card
-  title="Add Images"
-  icon="image"
-  href="/essentials/images"
->
-  Add images to your docs to make them more engaging.
-</Card>
+### Step 3: Generate evaluation results based on your uploaded data
 
-<Card
-  title="Add Custom Components"
-  icon="puzzle-piece"
-  href="/essentials/reusable-snippets"
->
-  Add templates to your docs to make them more reusable.
-</Card>
+In this step, Plum returns a score for each of the criteria defined in the previous step. These scores are out of a maximum of **5**.
 
-</CardGroup>
+These evaluation results will be used in the next step. Plum’s goal is to boost the lowest of these scores.
+
+```bash
+curl -H "Authorization: YOUR_KEY_HERE" -d '{"prompt":"YOUR SYSTEM PROMPT GOES HERE", 
+"seed_data_id":"YOUR SEED DATA ID FROM STEP 1 GOES HERE", 
+"metrics_id":"YOUR METRICS ID FROM STEP 2 GOES HERE"}' beta.getplum.ai/v1/evaluate
+```
+
+### Step 4: Generate synthetic data based on your uploaded seed data and evaluation results
+
+This step generates synthetic inputs and outputs, each pair being a variation of one of the seed pairs you uploaded in Step 1.
+
+Adjust the `multiple` to adjust the size of the dataset you would like to generate. For each example in your seed dataset, Plum will generate `multiple` synthetic examples similar to it.
+
+You will need at least 50-100 examples, so set the `multiple` accordingly.
+
+```bash
+curl -H "Authorization: YOUR_KEY_HERE" -d '{
+"multiple":2, 
+"seed_data_id":"YOUR SEED DATA ID GOES HERE", 
+"eval_results_id":"YOUR EVAL RESULTS ID FROM STEP 3 GOES HERE"}' beta.getplum.ai/v1/augment
+```
+
+### Step 5: Download the synthetic data in a format that OpenAI’s fine-tuning UI accepts
+
+OpenAI provides the ability to fine-tune and customize their latest models. In order to do this, you will use the synthetic data that Plum generated in the previous step.
+
+```bash
+curl -H "Authorization: YOUR_KEY_HERE" beta.getplum.ai/v1/data/synthetic_openai/1729625334491 > train.jsonl
+```
+
+### Step 6: Upload the synthetic data to a major LLM provider like OpenAI’s fine-tuning API
+
+Once you have a `train.jsonl` from Step 5, you could optionally create another file, `validation.jsonl`, using real heldout data that you haven’t used in the seed dataset.
+
+1. Go to the OpenAI fine-tuning page: [https://platform.openai.com/finetune](https://platform.openai.com/finetune)
+2. Click “Create”.
+3. Upload new training data.
+4. Optional: Select “Upload new” validation data. Drag your validation `.jsonl` file to upload.
+
+After around 15 minutes, the fine-tuning run completes, and OpenAI will provide a customized model ID that you can start using.
+
+Congratulations! You’ve completed one round of fine-tuning using Plum AI.
+
+Unlock your data flywheel: generate a new set of data using your fine-tuned model, create synthetic data using Plum AI, and start another round of fine-tuning.

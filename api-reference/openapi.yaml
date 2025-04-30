@@ -3,14 +3,15 @@ info:
   title: Plum API
   version: 1.1.0
 servers:
-  - url: https: //beta.getplum.ai/v1
+  - url: https://beta.getplum.ai/v1
 paths:
   /data/seeds:
     get:
       summary: List all seed datasets
       security:
         - ApiKeyAuth: []
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved list of seed datasets
           content:
             application/json:
@@ -26,8 +27,7 @@ paths:
                           type: string
                         created_at:
                           type: string
-  /data/seed/{id
-}:
+  /data/seed/{id}:
     get:
       summary: Retrieve a specific seed dataset by ID
       security:
@@ -39,7 +39,8 @@ paths:
           schema:
             type: string
           description: ID of the seed dataset or "latest" to get the most recent dataset
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved dataset
           content:
             application/json:
@@ -94,7 +95,8 @@ paths:
               required:
                 - data
                 - system_prompt
-      responses: "200":
+      responses:
+        "200":
           description: Data successfully inserted
           content:
             application/json:
@@ -103,8 +105,7 @@ paths:
                 properties:
                   id:
                     type: string
-  /data/seed/{id
-}/pair:
+  /data/seed/{id}/pair:
     post:
       summary: Add a single pair to an existing seed dataset
       security:
@@ -137,7 +138,8 @@ paths:
               required:
                 - input
                 - output
-      responses: "200":
+      responses:
+        "200":
           description: Pair successfully added to dataset
           content:
             application/json:
@@ -176,7 +178,8 @@ paths:
               required:
                 - data
                 - system_prompt
-      responses: "200":
+      responses:
+        "200":
           description: Dataset successfully uploaded
           content:
             application/json:
@@ -190,7 +193,8 @@ paths:
       summary: List all synthetic datasets
       security:
         - ApiKeyAuth: []
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved list of synthetic datasets
           content:
             application/json:
@@ -206,8 +210,7 @@ paths:
                           type: string
                         created_at:
                           type: string
-  /data/synthetic/{id
-}:
+  /data/synthetic/{id}:
     get:
       summary: Retrieve synthetic data by ID
       security:
@@ -219,7 +222,8 @@ paths:
           schema:
             type: string
           description: ID of the synthetic dataset or "latest" to get the most recent dataset
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved synthetic data
           content:
             application/json:
@@ -271,7 +275,8 @@ paths:
                   type: string
               required:
                 - data
-      responses: "200":
+      responses:
+        "200":
           description: Data successfully inserted
           content:
             application/json:
@@ -305,7 +310,8 @@ paths:
                   type: string
               required:
                 - data
-      responses: "200":
+      responses:
+        "200":
           description: Synthetic data successfully uploaded
           content:
             application/json:
@@ -314,8 +320,7 @@ paths:
                 properties:
                   id:
                     type: string
-  /data/synthetic_openai/{id
-}:
+  /data/synthetic_openai/{id}:
     get:
       summary: Retrieve synthetic data formatted for OpenAI by ID
       security:
@@ -326,15 +331,15 @@ paths:
           required: true
           schema:
             type: string
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved OpenAI formatted synthetic data
           content:
             text/plain:
               schema:
                 type: string
                 description: JSONL format for OpenAI fine-tuning
-  /question/{id
-}:
+  /question/{id}:
     get:
       summary: Get a specific metric definition by ID
       security:
@@ -345,7 +350,8 @@ paths:
           required: true
           schema:
             type: string
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved metric definition
           content:
             application/json:
@@ -369,8 +375,7 @@ paths:
                     type: integer
                   created_at:
                     type: string
-  /evaluation/{id
-}:
+  /evaluation/{id}:
     get:
       summary: Get a specific evaluation result by ID
       security:
@@ -381,7 +386,8 @@ paths:
           required: true
           schema:
             type: string
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved evaluation result
           content:
             application/json:
@@ -414,7 +420,8 @@ paths:
                   type: string
               required:
                 - system_prompt
-      responses: "200":
+      responses:
+        "200":
           description: Metrics successfully generated
           content:
             application/json:
@@ -434,7 +441,8 @@ paths:
       summary: List all available evaluation metrics
       security:
         - ApiKeyAuth: []
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved list of evaluation metrics
           content:
             application/json:
@@ -465,7 +473,8 @@ paths:
       summary: List all available evaluation results
       security:
         - ApiKeyAuth: []
-      responses: "200":
+      responses:
+        "200":
           description: Successfully retrieved list of evaluation results
           content:
             application/json:
@@ -497,7 +506,8 @@ paths:
                     description: String description of each metric
               required:
                 - metrics
-      responses: "200":
+      responses:
+        "200":
           description: Custom metrics successfully created
           content:
             application/json:
@@ -527,7 +537,8 @@ paths:
               required:
                 - seed_data_id
                 - metrics_id
-      responses: "200":
+      responses:
+        "200":
           description: Evaluation successfully completed
           content:
             application/json:
@@ -559,7 +570,8 @@ paths:
                   type: string
               required:
                 - seed_data_id
-      responses: "200":
+      responses:
+        "200":
           description: Data successfully augmented
           content:
             application/json:
@@ -610,7 +622,8 @@ paths:
                 - system_prompts
                 - model_name
                 - model_provider
-      responses: "200":
+      responses:
+        "200":
           description: Prompts successfully compared
           content:
             application/json:
@@ -650,7 +663,8 @@ paths:
                   description: Optional ID of seed dataset to use for prompt improvement
               required:
                 - prompt_comparison_results
-      responses: "200":
+      responses:
+        "200":
           description: Improved prompt successfully generated
           content:
             application/json:

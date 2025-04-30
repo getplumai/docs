@@ -48,8 +48,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/plum_logo.svg",
+    "dark": "/logo/plum_logo.svg"
   },
   "navbar": {
     "links": [

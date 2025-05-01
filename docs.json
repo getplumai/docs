@@ -30,6 +30,11 @@
     "global": {
       "anchors": [
         {
+          "anchor": "Documentation Home",
+          "href": "https://docs.getplum.ai",
+          "icon": "book-open"
+        },
+        {
           "anchor": "Dashboard",
           "href": "https://app.getplum.ai",
           "icon": "house"

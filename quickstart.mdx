@@ -3,88 +3,76 @@ title: 'Quickstart'
 description: 'Start improving your LLM in under 5 minutes'
 ---
 
-## Get an access key
+## Sign up for an account
 
-[https://auth.getplum.ai](https://auth.getplum.ai) 
+Sign up for an account at [https://app.getplum.ai](https://app.getplum.ai)
 
-Sign up here to get a Plum AI API key.
+## Datasets
 
-## Call the Plum AI - API
+To get started, Plum AI needs to start ingesting a dataset of inputs to your LLM and outputs from your LLM.
+This dataset is used to evaluate your application, which will drive the improvements you'll make.
+There are multiple ways to upload data to Plum:
 
-### Recommended to use Postman
+1. Upload a file containing the data
+2. Use the [Python SDK](https://github.com/getplumai/plum_sdk/): `pip install plum-sdk`
+3. Use our API. [See the API reference here.](/api-reference)
 
-[Instead of running `curl` commands, you can also use the API via the Postman interface.](https://www.postman.com/research-astronomer-38444972/workspace/plum-api-beta-endpoints/collection/39138842-02681bf5-2542-4a19-8f3f-36058f6683d9?action=share&creator=39138842)
+Here's how to upload a JSON file directly to Plum:
 
-We recommend **Postman** over `curl`.
+![Upload a dataset](/image/00_upload.png)
 
-### Step 1: Upload your data
+## Evaluation workflow
 
-All you need to get started is: 
+### Step 1: Generate evaluation metrics
 
-1. The system prompt you’ve been using
-2. User prompts (inputs) you’ve sent to the LLM
-3. Outputs that the LLM has returned
+Based on the uploaded data and system prompt, Plum AI can get you started quantitatively evaluating your outputs.
+To get started, click on "Generate Evaluation Metrics" for a set of metrics tailored for your specific use case.
 
-```bash
-curl -H "Authorization: YOUR_KEY_HERE" -d '{"data":[{"input":"THE FIRST USER PROMPT HERE", "output":"THE FIRST LLM RESPONSE HERE"},
-{"input":"ANOTHER USER PROMPT HERE", "output":"THE SECOND LLM RESPONSE HERE"}], "system_prompt":"YOUR SYSTEM PROMPT HERE"}' beta.getplum.ai/v1/data/seed
-```
+![Generate metrics](/image/03_generate_metrics.png)
 
-You will get a dataset ID in the response. Keep it somewhere safe because you’ll need it later.
+You can edit these metrics to modify them or add your own.
 
-### Step 2: Generate metric definitions based on your system prompt
+### Step 2: Use generated metrics
 
-The ability to evaluate your model comes from well-defined metrics. Plum creates criteria based on your business use case, which it then uses to score the model.
+Next, you can run an evaluation on your dataset using these metrics.
+This will give you a quantitative understanding of how well your LLM is performing based on the data provided.
 
-```bash
-curl -H "Authorization: YOUR_KEY_HERE" -d '{"system_prompt":"YOUR SYSTEM PROMPT GOES HERE"}' beta.getplum.ai/v1/questions
-```
+![Run evaluations](/image/05_run_evals.png)
 
-Keep the metrics ID in the response somewhere safe. You’ll need it in the next step.
+Click "Run Evaluation" and Plum AI will provide a statistical analysis of your outputs within seconds.
 
-### Step 3: Generate evaluation results based on your uploaded data
+![Evaluation results](/image/06_eval_results.png)
 
-In this step, Plum returns a score for each of the criteria defined in the previous step. These scores are out of a maximum of **5**.
+You now have a snapshot of your LLM application's performance, which you can track over time.
+Not only that, but Plum AI also provides you with reasons why and how your LLM is underperforming on specific metrics.
+This allows you to iterate and improve particular aspects of your LLM performance over time.
 
-These evaluation results will be used in the next step. Plum’s goal is to boost the lowest of these scores.
+## Fine-tuning workflow
 
-```bash
-curl -H "Authorization: YOUR_KEY_HERE" -d '{"prompt":"YOUR SYSTEM PROMPT GOES HERE", 
-"seed_data_id":"YOUR SEED DATA ID FROM STEP 1 GOES HERE", 
-"metrics_id":"YOUR METRICS ID FROM STEP 2 GOES HERE"}' beta.getplum.ai/v1/evaluate
-```
+### Generate synthetic data driven by the evaluation scores
 
-### Step 4: Generate synthetic data based on your uploaded seed data and evaluation results
+Now that you have evaluations tailored to your preferences, you may want to fine-tune your LLM.
+Providers such as OpenAI and Anthropic allow you to fine-tune models based on a dataset of positive examples you upload to their platform.
+Plum AI can leverage your evaluation results and provide you with the exact right data to fine-tune a model.
 
-This step generates synthetic inputs and outputs, each pair being a variation of one of the seed pairs you uploaded in Step 1.
+Choose the size of synthetic dataset you want to generate from your initial seed dataset.
+For reference, fine-tuning a model requires around at least 100 examples.
 
-Adjust the `multiple` to adjust the size of the dataset you would like to generate. For each example in your seed dataset, Plum will generate `multiple` synthetic examples similar to it.
+Click the "Generate" button to generate synthetic data based on evaluation scores.
 
-You will need at least 50-100 examples, so set the `multiple` accordingly.
+![Augment](/image/08_augment.png)
 
-```bash
-curl -H "Authorization: YOUR_KEY_HERE" -d '{
-"multiple":2, 
-"seed_data_id":"YOUR SEED DATA ID GOES HERE", 
-"eval_results_id":"YOUR EVAL RESULTS ID FROM STEP 3 GOES HERE"}' beta.getplum.ai/v1/augment
-```
+Click on "Download in OpenAI's .jsonl format" to download the synthetic dataset in the format required by OpenAI's platform.
 
-### Step 5: Download the synthetic data in a format that OpenAI’s fine-tuning UI accepts
+![Download jsonl](/image/09_download_jsonl.png)
 
-OpenAI provides the ability to fine-tune and customize their latest models. In order to do this, you will use the synthetic data that Plum generated in the previous step.
-
-```bash
-curl -H "Authorization: YOUR_KEY_HERE" beta.getplum.ai/v1/data/synthetic_openai/1729625334491 > train.jsonl
-```
-
-### Step 6: Upload the synthetic data to a major LLM provider like OpenAI’s fine-tuning API
+### Upload the synthetic data to a major LLM provider like OpenAI’s fine-tuning API
 
 Once you have a `train.jsonl` from Step 5, you could optionally create another file, `validation.jsonl`, using real heldout data that you haven’t used in the seed dataset.
 
 1. Go to the OpenAI fine-tuning page: [https://platform.openai.com/finetune](https://platform.openai.com/finetune)
 2. Click “Create”.
 3. Upload new training data.
-4. Optional: Select “Upload new” validation data. Drag your validation `.jsonl` file to upload.
 
 After around 15 minutes, the fine-tuning run completes, and OpenAI will provide a customized model ID that you can start using.
 

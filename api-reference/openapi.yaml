@@ -394,16 +394,64 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
+                  results_id:
+                    type: string
+                  created_at:
+                    type: string
+                  dataset_id:
                     type: string
                   metrics_id:
                     type: string
-                  scores:
-                    type: object
-                  mean_scores:
+                  metrics_definitions:
+                    type: array
+                    items:
+                      type: string
+                  pair_count:
+                    type: integer
+                  system_prompt:
+                    type: string
+                  score_means:
                     type: array
                     items:
                       type: number
+                  score_medians:
+                    type: array
+                    items:
+                      type: number
+                  score_mins:
+                    type: array
+                    items:
+                      type: number
+                  score_maxes:
+                    type: array
+                    items:
+                      type: number
+                  score_std_devs:
+                    type: array
+                    items:
+                      type: number
+                  score_confidence_intervals:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ci_low:
+                          type: number
+                        ci_high:
+                          type: number
+                        ci_confidence:
+                          type: number
+                  min_scoring_pairs:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          reason:
+                            type: string
+                          pair_id:
+                            type: string
   /questions:
     post:
       summary: Generate evaluation metrics
@@ -459,7 +507,7 @@ paths:
                         definitions:
                           type: array
                           items:
-                            type: object
+                            type: string
                         system_prompt:
                           type: string
                         metric_count:
@@ -482,10 +530,69 @@ paths:
                 type: object
                 properties:
                   results:
-                    type: array
-                    items:
-                      type: string
-                  count:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        results_id:
+                          type: string
+                        created_at:
+                          type: string
+                        dataset_id:
+                          type: string
+                        metrics_id:
+                          type: string
+                        metrics_definitions:
+                          type: array
+                          items:
+                            type: string
+                        pair_count:
+                          type: integer
+                        system_prompt:
+                          type: string
+                        score_means:
+                          type: array
+                          items:
+                            type: number
+                        score_medians:
+                          type: array
+                          items:
+                            type: number
+                        score_mins:
+                          type: array
+                          items:
+                            type: number
+                        score_maxes:
+                          type: array
+                          items:
+                            type: number
+                        score_std_devs:
+                          type: array
+                          items:
+                            type: number
+                        score_confidence_intervals:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              ci_low:
+                                type: number
+                              ci_high:
+                                type: number
+                              ci_confidence:
+                                type: number
+                        min_scoring_pairs:
+                          type: array
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                reason:
+                                  type: string
+                                pair_id:
+                                  type: string
+                  total_count:
                     type: integer
   /specify_questions:
     post:
@@ -530,13 +637,25 @@ paths:
             schema:
               type: object
               properties:
+                synthetic_data_id:
+                  type: string
+                  description: ID of synthetic dataset to evaluate (either this or seed_data_id is required)
                 seed_data_id:
                   type: string
+                  description: ID of seed dataset to evaluate (either this or synthetic_data_id is required)
                 metrics_id:
                   type: string
-              required:
-                - seed_data_id
-                - metrics_id
+                  description: ID of metrics to use for evaluation (will use latest if not provided)
+                pair_query:
+                  type: object
+                  description: Optional query parameters to filter dataset pairs
+                  properties:
+                    latest_n_pairs:
+                      type: integer
+                      description: Maximum number of latest pairs to include (defaults to 150 if not provided)
+                    pair_label:
+                      type: string
+                      description: Filter pairs by label (optional)
       responses:
         "200":
           description: Evaluation successfully completed
@@ -547,6 +666,44 @@ paths:
                 properties:
                   eval_results_id:
                     type: string
+                  dataset_id:
+                    type: string
+                  created_at:
+                    type: string
+                  scores:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        metric:
+                          type: string
+                        mean_score:
+                          type: number
+                        std_dev:
+                          type: number
+                        ci_low:
+                          type: number
+                        ci_high:
+                          type: number
+                        ci_confidence:
+                          type: number
+                        median_score:
+                          type: number
+                        min_score:
+                          type: number
+                        max_score:
+                          type: number
+                        lowest_scoring_pairs:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              pair_id:
+                                type: string
+                              score_reason:
+                                type: string
+                  pair_count:
+                    type: integer
   /augment:
     post:
       summary: Augment seed data to generate synthetic data
@@ -561,6 +718,7 @@ paths:
               properties:
                 seed_data_id:
                   type: string
+                  description: ID of seed dataset to augment (will use latest if not provided)
                 multiple:
                   type: integer
                   default: 1
@@ -568,8 +726,20 @@ paths:
                   description: Number of synthetic examples to generate per seed example (max 50)
                 eval_results_id:
                   type: string
-              required:
-                - seed_data_id
+                  description: ID of evaluation results to use for target metric (will use latest if not provided)
+                pair_query:
+                  type: object
+                  description: Optional query parameters to filter seed dataset pairs
+                  properties:
+                    latest_n_pairs:
+                      type: integer
+                      description: Maximum number of latest pairs to include (defaults to 150 if not provided)
+                    pair_label:
+                      type: string
+                      description: Filter pairs by label (optional)
+                target_metric:
+                  type: string
+                  description: Target metric for redrafting synthetic data (will use lowest scoring metric if not provided)
       responses:
         "200":
           description: Data successfully augmented

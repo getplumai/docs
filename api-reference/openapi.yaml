@@ -135,6 +135,10 @@ paths:
                   type: array
                   items:
                     type: string
+                input_media:
+                  type: string
+                  format: byte
+                  description: Optional base64 encoded media data
               required:
                 - input
                 - output

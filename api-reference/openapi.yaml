@@ -525,6 +525,14 @@ paths:
       summary: List all available evaluation results
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: hydrate
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Whether to return full evaluation results or just metadata
       responses:
         "200":
           description: Successfully retrieved list of evaluation results

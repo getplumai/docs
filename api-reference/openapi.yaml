@@ -456,6 +456,96 @@ paths:
                             type: string
                           pair_id:
                             type: string
+                  human_critique:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        pair_id:
+                          type: string
+                        metric_idx:
+                          type: integer
+                        comment:
+                          type: string
+                        vote:
+                          type: integer
+                          enum: [-1, 0, 1]
+                        user:
+                          type: string
+                        user_email:
+                          type: string
+                        time:
+                          type: string
+  /vote_eval_pair/{id}:
+    put:
+      summary: Update evaluation result with human feedback
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the evaluation result to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pair_id:
+                  type: string
+                  description: ID of the pair to provide feedback on
+                metric_idx:
+                  type: integer
+                  description: Index of the metric in the Metrics.Definitions array
+                vote:
+                  type: integer
+                  enum: [-1, 0, 1]
+                  description: Vote for the pair (-1 = negative, 0 = neutral, 1 = positive)
+                comment:
+                  type: string
+                  description: Optional comment providing feedback on the pair
+              required:
+                - pair_id
+                - metric_idx
+                - vote
+      responses:
+        "200":
+          description: Evaluation result successfully updated with human feedback
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  results_id:
+                    type: string
+                  pair_id:
+                    type: string
+        "400":
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /questions:
     post:
       summary: Generate evaluation metrics

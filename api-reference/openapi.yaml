@@ -105,9 +105,64 @@ paths:
                 properties:
                   id:
                     type: string
+  /data/seed/pair:
+    post:
+      summary: Add a single pair to a dataset (creates new dataset if the system_prompt_template that's provided doesn't correspond to an existing dataset)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Optional ID for the pair, will be generated if not provided
+                input:
+                  type: string
+                output:
+                  type: string
+                labels:
+                  type: array
+                  items:
+                    type: string
+                input_media:
+                  type: string
+                  format: byte
+                  description: Optional base64 encoded media data
+                system_prompt_template:
+                  type: string
+                  description: If this prompt already exists, the pair will be added to the existing dataset. If not, a new dataset will be created.
+              required:
+                - input
+                - output
+                - system_prompt_template
+      responses:
+        "200":
+          description: Pair successfully added to dataset (existing or newly created)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataset_id:
+                    type: string
+                  pair_id:
+                    type: string
+        "400":
+          description: Invalid request - missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /data/seed/{id}/pair:
     post:
-      summary: Add a single pair to an existing seed dataset
+      summary: Add a single pair to an existing seed dataset by ID
       security:
         - ApiKeyAuth: []
       parameters:
@@ -139,6 +194,9 @@ paths:
                   type: string
                   format: byte
                   description: Optional base64 encoded media data
+                system_prompt_template:
+                  type: string
+                  description: Optional - if provided when using a specific dataset ID, it will be ignored
               required:
                 - input
                 - output
@@ -153,6 +211,15 @@ paths:
                   dataset_id:
                     type: string
                   pair_id:
+                    type: string
+        "400":
+          description: Invalid request - missing required fields or dataset ID doesn't exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
                     type: string
   /data/seed:
     post:

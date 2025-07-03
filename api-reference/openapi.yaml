@@ -825,6 +825,9 @@ paths:
                     pair_label:
                       type: string
                       description: Filter pairs by label (optional)
+                    last_n_seconds:
+                      type: integer
+                      description: Filter pairs created in the last N seconds (optional)
       responses:
         "200":
           description: Evaluation successfully completed
@@ -873,6 +876,33 @@ paths:
                                 type: string
                   pair_count:
                     type: integer
+        "400":
+          description: Bad request - invalid parameters or no pairs found after filtering
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "403":
+          description: Forbidden - dataset size exceeds plan limit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /augment:
     post:
       summary: Augment seed data to generate synthetic data
@@ -885,9 +915,6 @@ paths:
             schema:
               type: object
               properties:
-                seed_data_id:
-                  type: string
-                  description: ID of seed dataset to augment (will use latest if not provided)
                 multiple:
                   type: integer
                   default: 1
@@ -895,20 +922,28 @@ paths:
                   description: Number of synthetic examples to generate per seed example (max 50)
                 eval_results_id:
                   type: string
-                  description: ID of evaluation results to use for target metric (will use latest if not provided)
+                  description: ID of evaluation results to use for target metrics (will use latest if not provided)
+                include_gathered:
+                  type: boolean
+                  default: false
+                  description: If true, includes gathered pairs (high-scoring and positively critiqued) in the synthetic dataset
                 pair_query:
                   type: object
                   description: Optional query parameters to filter seed dataset pairs
                   properties:
                     latest_n_pairs:
                       type: integer
-                      description: Maximum number of latest pairs to include (defaults to 150 if not provided)
+                      description: Maximum number of latest pairs to include (defaults to MaxCorpusSize if not provided)
                     pair_label:
                       type: string
                       description: Filter pairs by label (optional)
-                target_metric:
-                  type: string
-                  description: Target metric for redrafting synthetic data (will use lowest scoring metric if not provided)
+                target_metric_idx:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array of indices of target metrics for redrafting synthetic data (from the evaluation results)
+              required:
+                - target_metric_idx
       responses:
         "200":
           description: Data successfully augmented
@@ -919,16 +954,177 @@ paths:
                 properties:
                   synthetic_data_id:
                     type: string
+                    description: ID of the generated synthetic dataset
                   created_at:
                     type: string
+                    description: Timestamp when the synthetic data was created
                   seed_data_size:
                     type: integer
+                    description: Number of pairs in the original seed dataset
                   synthetic_data_size:
+                    type: integer
+                    description: Total number of pairs in the synthetic dataset (including gathered pairs if include_gathered is true)
+                  system_prompt:
+                    type: string
+                    description: System prompt used for the synthetic data
+                  target_metrics:
+                    type: array
+                    items:
+                      type: string
+                    description: Array of target metrics that were used for redrafting
+        "400":
+          description: Bad request - malformed JSON or missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "403":
+          description: Forbidden - token count exceeds plan limit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error - various failures during augmentation process
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /gather/{id}:
+    get:
+      summary: Gather high-scoring and positively critiqued pairs from evaluation results
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the evaluation results to gather pairs from
+      responses:
+        "200":
+          description: Successfully gathered pairs from evaluation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eval_results_id:
+                    type: string
+                  dataset_id:
+                    type: string
+                  high_scoring_pairs:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        input:
+                          type: string
+                        output:
+                          type: string
+                        metadata:
+                          type: object
+                          properties:
+                            created_at:
+                              type: string
+                            labels:
+                              type: array
+                              items:
+                                type: string
+                  positively_critiqued_pairs:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        input:
+                          type: string
+                        output:
+                          type: string
+                        metadata:
+                          type: object
+                          properties:
+                            created_at:
+                              type: string
+                            labels:
+                              type: array
+                              items:
+                                type: string
+                  high_scoring_pair_count:
+                    type: integer
+                  positive_critique_count:
                     type: integer
                   system_prompt:
                     type: string
-                  target_metric:
-                    type: object
+        "400":
+          description: Bad request - evaluation results id is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /gather_openai/{id}:
+    get:
+      summary: Gather high-scoring and positively critiqued pairs formatted for OpenAI fine-tuning
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the evaluation results to gather pairs from
+      responses:
+        "200":
+          description: Successfully gathered pairs in OpenAI JSONL format
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: JSONL format for OpenAI fine-tuning, combining high-scoring and positively critiqued pairs (deduplicated)
+        "400":
+          description: Bad request - evaluation results id is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /compare_prompts:
     post:
       summary: Compare multiple prompts against a dataset

@@ -876,15 +876,6 @@ paths:
                                 type: string
                   pair_count:
                     type: integer
-        "400":
-          description: Bad request - invalid parameters or no pairs found after filtering
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
         "403":
           description: Forbidden - dataset size exceeds plan limit
           content:

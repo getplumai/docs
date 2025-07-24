@@ -457,6 +457,13 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeAllScores
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include all scored pairs with their scores and reasons in the API response (useful for detailed analysis)
       responses:
         "200":
           description: Successfully retrieved evaluation result
@@ -523,6 +530,22 @@ paths:
                             type: string
                           pair_id:
                             type: string
+                          score:
+                            type: number
+                  all_scored_pairs:
+                    type: array
+                    description: All scored pairs with scores and reasons (only included when includeAllScores=true)
+                    items:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          reason:
+                            type: string
+                          pair_id:
+                            type: string
+                          score:
+                            type: number
                   human_critique:
                     type: array
                     items:
@@ -545,6 +568,67 @@ paths:
                           type: string
                         time:
                           type: string
+  /evaluation/{id}/export_tsv:
+    get:
+      summary: Export evaluation results as TSV file
+      description: Exports comprehensive evaluation results as a Tab-Separated Values (TSV) file with all scored pairs, their scores, reasons, and labels for analysis in spreadsheet applications. All scored pairs data is automatically collected and stored during evaluation.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the evaluation results to export
+      responses:
+        "200":
+          description: Successfully exported evaluation results as TSV
+          content:
+            text/tab-separated-values:
+              schema:
+                type: string
+                description: TSV file with columns - pair_id, pair_input, pair_output, pair_labels, then for each metric - {metric_name}_score, {metric_name}_reason
+              example: |
+                pair_id	pair_input	pair_output	pair_labels	helpfulness_score	helpfulness_reason	accuracy_score	accuracy_reason
+                1704067200001	What is the capital of France?	The capital of France is Paris.	geography,factual	4.50	Provides direct and accurate answer	5.00	Completely accurate information
+                1704067200002	Explain quantum physics	Quantum physics is very complicated...	physics,complex	2.00	Too vague and unhelpful	2.50	Lacks specific details and accuracy
+          headers:
+            Content-Disposition:
+              description: Attachment header for file download
+              schema:
+                type: string
+                example: 'attachment; filename="eval_results_1704067200123.tsv"'
+        "400":
+          description: Bad request - evaluation results id is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "results id cannot be empty"
+        "404":
+          description: No comprehensive scoring data available for this evaluation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "no detailed scoring data available for this evaluation"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "failed to get eval results: please try again later"
   /vote_eval_pair/{id}:
     put:
       summary: Update evaluation result with human feedback
@@ -822,9 +906,11 @@ paths:
                     latest_n_pairs:
                       type: integer
                       description: Maximum number of latest pairs to include (defaults to 150 if not provided)
-                    pair_label:
-                      type: string
-                      description: Filter pairs by label (optional)
+                    pair_labels:
+                      type: array
+                      items:
+                        type: string
+                      description: Filter pairs by labels (optional)
                     last_n_seconds:
                       type: integer
                       description: Filter pairs created in the last N seconds (optional)
@@ -925,9 +1011,11 @@ paths:
                     latest_n_pairs:
                       type: integer
                       description: Maximum number of latest pairs to include (defaults to MaxCorpusSize if not provided)
-                    pair_label:
-                      type: string
-                      description: Filter pairs by label (optional)
+                    pair_labels:
+                      type: array
+                      items:
+                        type: string
+                      description: Filter pairs by labels (optional)
                 target_metric_idx:
                   type: array
                   items:
